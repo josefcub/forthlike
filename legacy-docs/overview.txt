@@ -1,0 +1,243 @@
+How the FLL interpreter works (Overview):
+
+    This file attempts to explain how this interpreter incarnation
+  functions.  It isn't really intended to be a guide to developing
+  languages, merely the interpreter author's choices in the design
+  and implementation of this particular language interpreter.  One
+  thing should be noted:  The language chosen for interpretation is
+  actually well-suited for this form of interpretation.  Most other
+  languages do require a vastly different algorithm for interpreting 
+  their instructions.
+
+  Stage One:  The parser and preloader
+    
+    The preloader calls on the parser to return a word.  If the word
+  marks the beginning of a procedure, a new entry in the procedure
+  table is created, and everything in that procedure is loaded into
+  memory.  This continues until the end of the file.
+
+    The parser simple runs through the file, one character at a time,
+  acting appropriately depending on the character pulled.  If the char-
+  acter is whitespace (Characters like space, or comments, which mean 
+  nothing to the computer in the execution of the program), the parser 
+  skips over them.  The parser continues until it assembles a full 
+  "word" (In this case, anything in quotes, or something surrounded by 
+  whitespace), and it then returns this to the preloader.
+
+    If the parser encounters something wrong in the general "syntax" 
+  (How the program is written, like an enter where there shouldn't
+  be one, or a comment or string that doesn't end properly), it will 
+  generate an error and terminate, notifying the user of the problem 
+  it found in the process.  
+  
+    The preloader does the same thing, only more abstract.  It returns 
+  errors related to the construction of the procedure, such as reach-
+  ing the end of a file without finding the end of a procedure, trying
+  to define a procedure within another, or trying to put instructions 
+  in the whitespace between procedures.  
+
+    Once the preloader has read in (through the parser) all of the 
+  program instructions, execution can finally begin.  The preloader
+  has created a list of procedures that can be executed, and has
+  assigned a variable that points to the end of the list, where a 
+  program is normally begun. (Actually, depending on the language,
+  execution can begin in different places.  In this case, it begins
+  at the end, in a procedure traditionally called 'main', which is 
+  always the last one in a file.)
+
+    To understand the difference between code and whitespace, see
+  the program 'fstrip', in this package.  It strips all but the
+  minimum amount of whitespace from the file, and can give you an
+  idea of what the preloader and interpreter see, coming from the
+  parse subroutine.
+
+  Stage Two: Interpretation
+
+    The interpreter starts by taking the address of that last proc-
+  edure defined by the preloader, and looking at each instruction 
+  in order.  One of five things happens with each instruction:
+
+     1) If it is a value like "Hello, World!" (a string), or -145
+        (a number), this is pushed onto the "stack" so that other
+	instructions might utilize that data.
+
+     2) If it's a previously defined procedure (as loaded by the
+        preloader), the interpreter executes all of the instruct-
+	ions in that procedure, then returns execution to its 
+	previous place in the first procedure.
+
+     3) If it is a flow control statement (such as IF/ELSE/THEN,
+        BEGIN/REPEAT, EXIT, etc.), the program's execution jumps
+	into that instruction's internal subroutine, executing 
+	the instructions that need to be done, depending on how 
+	the flow control works (more on that later).
+
+     4) If it isn't one of those above, it will run it through a 
+        list of known instructions that are hard-coded into the
+	interpreter.  If a match is found (the instruction is a 
+	built-in one), then it is executed, doing whatever it is
+	designed to do.
+
+     5) Finally, if all else has failed, a syntax error is gen-
+	erated.  This error, while unlike a parser or preloader 
+	syntax error, is still considered one of syntax, because 
+	the absence of the instruction in the set is an error in
+	the writing of the program (Usually one of misspelling).  
+	If this point is reached, the program execution stops, 
+	and the user is informed, dumping them back to the 
+	the operating system from whence they came.
+
+    The execution of the program continues through until the end
+  of that last procedure is reached, and then the interpreter ret-
+  urns the user to the operating system.
+
+  Particulars:  IF/ELSE/THEN
+
+    When the IF instruction is found, control of the program
+  is passed to the "do_if" interpreter subroutine.  The first
+  thing it does is attempt to find it's matching "ELSE" and 
+  "THEN" statements (THEN marks the end of the decision's 
+  instruction block, and ELSE marks a block of instructions to
+  perform if the IF condition is false).  If it is successful,
+  it makes an evaluation of the top item on the program stack.
+
+    If that evaluation is true (a non-zero value), it will
+  tell the interpreter to execute everything between the
+  IF, and it's matching ELSE (if it exists), or THEN
+  (if it doesn't).  This includes other IF statements, so the
+  do_if subroutine keeps track of how deep this "nesting" goes,
+  generating an error if there are too many IF statements nested
+  inside each other, and to keep its ELSE and THEN instructions
+  separate from the deeper ones.
+
+    If the evaluation is false (Zero), the interpreter will exec-
+  ute everything from ELSE to THEN (if it exists), or skip
+  to the THEN statement (if ELSE doesn't exist).  Control
+  of the program then returns to the interpreting subroutine.
+
+    One error is possible within IF:  If the IF statement, when 
+  scanning for it's matching ELSE and THEN, doesn't find a 
+  THEN statement before it reaches the end of the procedure, it 
+  will return an appropriate error message ("IF without THEN") 
+  to the user and exit to the operating system.
+
+    Unlike the ordinary instructions the interpreter recognizes,
+  the IF statement takes care of the ELSE and THEN instructions 
+  on its own.  If they are encountered outside of an IF block, 
+  the interpreter will generate a syntax error, signifying that
+  it does not know those instructions (which, being outside of 
+  do_if, it truly doesn't).
+
+  Particulars: EXIT
+
+    The EXIT instruction's operation actually begins before a proc-
+  edure is executed and the EXIT instruction is called.  The interp-
+  reter sets a "jump point", telling it to mark that particular spot 
+  in execution (before the procedure starts execution).
+
+    If, while the interpreter is doing its job, it finds an EXIT
+  instruction, the interpreter will execute a "long jump" to pre-
+  cisely the point it was before it began executing the current 
+  procedure.  That point, being before the actual call to the
+  interpreter, senses that it just returned from one of those
+  long jumps, and does not try to execute that procedure again.
+
+    This has the effect in the program to immediately and un-
+  ceremoniously exit a procedure that is currently running, and
+  drop back to the procedure that called it, or the operating
+  system if the procedure was the first one (last one physically)
+  executed.
+
+  Particulars:  Looping (BEGIN-WHILE-REPEAT, BEGIN-UNTIL, etc)
+
+    When the BEGIN instruction is encountered by the interpreter,
+  it 'marks' its place in the current procedure by recording the
+  position of the BEGIN (BOL or Beginning of Loop).  Then, like 
+  the do_if function, BEGIN searches down the word for the match-
+  ing end-of-loop (EOL) instruction (either UNTIL or REPEAT).  
+  The BEGIN instruction stores these values in a list, and increments
+  a global counter indicating a new loop has begun.
+
+    The rest of the looping instructions differ from the do_if 
+  subroutine in that the interpreter knows about them, instead of 
+  do_begin keeping them all to itself.  The five loop control 
+  instructions besides BEGIN are:
+
+       BREAK    - Ends the loop by moving execution to after the EOL.
+       CONTINUE - Jumps execution back to the beginning of the loop.
+       REPEAT   - Does the same thing as CONTINUE.
+       UNTIL    - If the top value on the stack is false, execution 
+                  returns to the BOL.  If it is true, execution 
+		  resumes after the UNTIL.
+       WHILE    - Does exactly the opposite.  If the top value on the 
+                  stack is true, execution continues until a CONTINUE, 
+		  REPEAT, or UNTIL instruction is encountered.  
+		  Otherwise, it moves execution to after EOL.
+
+    Only two of the instructions, BREAK and CONTINUE, would truly be 
+  necessary in the language.  In terms of the language itself, the 
+  other instructions could be defined like this:
+
+       REPEAT	continue
+       WHILE	not if break then
+       UNTIL	if break else continue then
+
+    However, the designers of the original language probably found (as
+  did I) that having concrete loop-ending instructions not only saved
+  programming (and hence space and CPU time), but made everything nice
+  and concrete, with a definite beginning and ending.
+
+    When these statements are encountered by the interpreter and called
+  by it, they will each return a pointer based on their function or a 
+  necessary comparison.  That pointer, to either the BOL or EOL, is
+  immediately adopted by the interpreter, and execution continues
+  (sometimes in an endless loop).
+
+  Particulars:  Advantages and Disadvantages
+
+    The methods used in the interpretation of the program have
+  advantages and disadvantages, as any method does.  The primary
+  advantage to the preloader/interpreter method is one of speed,
+  especially in floppy-based systems.  By reducing the disk access
+  to just loading the program in first thing (in a serial, or 
+  straight-line fashion no less), execution is dramatically
+  speeded up.
+
+    The primary (and glaringly obvious) disadvantage is memory
+  usage.  With the entire program in memory from the get-go,
+  space that could be used for the program's data can be greatly
+  reduced, and thus on a limited-memory system, the usefulness
+  of the interpreter could be reduced, especially for large 
+  applications.
+
+    Another memory-usage disadvantage is that the program is
+  stored "as-is" in memory.  The literal text (thankfully minus
+  whitespace) is stored, one word at a time, in a long string
+  of memory locations for execution later.  The alternative to
+  this is called "tokenization", where the literal instructions
+  are reduced to "tokens", or shorter, unique representations
+  of the instructions.  
+  
+    The primary reason for choosing literal-string interpretation 
+  was one of speed (reducing load time by not trying to guess what
+  is a built-in instruction, a user-defined instruction, or data
+  to be operated on), and of simplicity.  With literal strings, 
+  it is very easy to see in the interpretation routines what is 
+  going on.  It's almost better than comments in places (just 
+  kidding).
+
+    The unique structure of a Forth-like language like FLL (and
+  MUCKer Forth, from which it is derived) lends itself spectac-
+  ularly well to having few non-looping components (like the in-
+  interpreter execution of EXIT).  Looping provides both a rob-
+  ustness and simplicity to the design of the interpreter that
+  also speeds things up by having few abrupt changes.  
+  
+    It also eliminates the need of "stacks" for the branch
+  and loop instructions, helping to offset the memory usage of 
+  the literal strings.  In fact, there is only one real "stack"
+  used.  It is a simple jump location stack for the EXIT inst-
+  ruction.  (The user-defined procedure list isn't really a 
+  stack in that it's accessed dynamically, and not "last in, 
+  first out".)
+

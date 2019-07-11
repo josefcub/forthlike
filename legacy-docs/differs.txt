@@ -1,0 +1,24 @@
+Differences between FLL's language and MUCKer Forth:
+
+  * See PRIMS.TXT for the list of supported primitives.
+
+  * The only types supported are string and int.
+
+  * notify  ( s -- )          Sends string s to stdout.
+
+  * random  ( -- i )          Random number between 0 and 32767
+
+  * subst   ( s1 s2 s3 -- s ) Substitutes S3 with S2 in S1.  It
+                              is not implemented locally, and 
+                              can be $included from test/subst.m
+
+  * DOS only allows 127 characters maximum input to the 
+    READ primitive.
+  
+  * The $include directive is implemented, but no others are.  All
+    directives save $include are treated as single line comments.
+    
+    Compatibility $defines:
+       
+      $def notify me @ swap \notify
+      $def dump

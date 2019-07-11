@@ -1,0 +1,98 @@
+Goals for FLL Beta:
+
+    1) Filesystem access through primitives.
+
+Goals for FLL alpha version 0.5:
+    
+    1) primitives: ! @ 
+
+    2) statements: localvar var variable
+
+    3) Directives: $define
+
+    4) Decide on a good strategy for OS and file I/O support.
+
+    4) Conversion to the GPL.
+
+    5) Find a good, permanent name for the project.
+
+    6) Fix bugs and move to beta.
+
+-----
+Version 0.4 done:
+    1) primitives: abort begin bitand bitor bitshift bitxor break 
+                   continue date explode instr instring repeat rinstr
+                   rinstring time until while 
+
+    2) Loops are alive and functioning well.
+         * There is probably a way to optimize the looping
+	   subroutines.
+
+    3) Added $include directive.  We can now have multiple
+       source modules.
+
+    4) $def is now ignored, out of necessity.  $define
+       comes later.
+    
+    5) Wrote test/subst.f to avoid putting it in the 
+       interpreter.
+
+    5) Bugs repaired as found or inferred.
+         * Mostly just logic bugs in test.m and loops.m.
+	 * Thanks to ABORT, error() has been simplified
+	   from its previous (ungainly) version.
+
+-----
+Version 0.3 done:
+    1) primitives: if else then exit
+
+    2) Various bugs found and repaired.  
+         * Exit now works perfectly with the new flow-
+	   control-oriented interpretation system.
+         
+	 * Minor annoyances in both Makefiles fixed.
+
+    3) Extras:
+         * Redid the interpretation subroutines into
+	   several discrete functions.  Interp now 
+	   only handles primitives, while trypush
+	   handles data, and tryword handles words.
+
+	 * do_word is a wrapper for "do_word_until".  
+	   d_w_u is fully re-entrant capable, and it 
+	   provides custom start/stop points (for flow
+	   control).
+
+Version 0.2 done:
+    1) primitives: string? strcmp strcut stringcmp stringpfx strlen
+                   striplead striptail strip toupper tolower sleep
+                   number? int? random and or not < > >= <= = version
+
+    2) Procedures (words) now function.
+
+    3) Compartmentalized (C&H'd) the individual files
+
+    4) Bugs repaired as found or inferred.
+       * Null-string arithmetic bug repaired.
+       * Various parser and preloader bugs found and repaired.
+       * Boneheaded divide-by-zero bugs fixed.
+       * Fixed read null-string bug.
+
+    5) Extras: 
+       * Primitive escaping implemented for overloading.
+       * Primitives: strncmp %
+       * Properly functioning Makefiles for DOS and Linux.
+
+Version 0.1 done:
+    1) A very basic parser.
+        a) linecounts are mostly done.
+        b) semi-sensible comment handling.
+           * It'll ignore extra left-parens, but extra rights'll 
+             error out.
+
+    2) primitives: pop pick dup over rotate rot swap put depth
+                   atoi intostr read notify strcat + - / *
+
+    3) See test.f
+
+    4) FLL (Forth-like Language) Interpreter

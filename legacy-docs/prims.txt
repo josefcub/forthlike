@@ -1,0 +1,67 @@
+Primitives currently supported, unchanged from MUF:
+
+-		%		*		/
++		<		<=		=
+>		>=		abort		and
+atoi		begin		bitand		bitor
+bitshift	bitxor		break		continue	
+date		depth		dup		else		
+exit		explode		if		instr
+instring	int?		int		intostr
+not		number?		or		over
+pick		pop		put		rinstr
+rinstring	read		repeat		rot
+rotate		sleep		strcat		strcmp
+strcut		string?		stringcmp	stringpfx
+strip		striplead	striptail	strlen
+strncmp		swap		then		time
+tolower		toupper		until		version
+while
+
+Primitives currently supported, but changed from MUF:
+notify		random
+
+Primitives supported by $including them:
+subst
+
+Primitives coming in the future:
+!		@		localvar 	var
+variable
+
+Primitives likely to be supported in the future:
+strdecrypt	strencrypt
+
+Primitives less likely to be supported in the future:
+smatch
+
+Primitives least likely to be supported in the future:
+addpennies	addprop		address?	awake?
+background	bg_mode		call		checkargs
+caller		checkpassword	conboot		concount
+condbref	condescr	conhost		conidle
+connotify	contents	contime		controls
+conuser		copyobj		dbcmp		dbcmp
+dbref		dbref?		dbtop		desc
+descr_setuser	descrcon	descriptors	drop
+envprop		envpropstr	exit?		exits
+fail		fg_mode		flag?		force
+foreground	fork		getlink		getlockstr
+getprop		getpropstr	getpropval	gmtoffset
+ispid?		kill		location	lock?
+locked?		match		mlevel		mode		
+moveto		name		newexit		newroom
+next		nextdescr	nextprop	notify_except
+notify_exclude	odrop		ofail		ok?
+online		osucc		owner		parselock
+parseprop	part_pmatch	pennies		pid
+player?		pr_mode		preempt		prettylock
+prog		program?	pronoun_sub	propdir?	
+queue 		recycle		remove_prop	rmatch
+room?		set		setdesc		setdrop
+setfail		setlink		setlockstr	setmode
+setname		setodrop	setofail	setosucc
+setown		setprop		setsucc		smatch
+stats		succ		sysparm		systime
+testlock	thing?		timefmt		timesplit
+timestamps	trig		truename	unparselock
+unparseobj
